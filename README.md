@@ -29,6 +29,8 @@ npm run deploy   # 2. put the contract on it
 npm run web      # 3. open http://localhost:4321
 ```
 
+Or start all three at once with `npm start` (open http://localhost:4321).
+
 If you stop and restart `npm run chain`, the blockchain starts empty again: run `npm run deploy` again and reload the page.
 
 ## Things to try
@@ -38,6 +40,10 @@ If you stop and restart `npm run chain`, the blockchain starts empty again: run 
 3. Click **Underpay** on a new invoice, or **Try paying again** on a paid one. The contract refuses.
 4. Switch back to **Coffee Shop** and **Withdraw**. The shop's balance goes up (minus the withdraw fee).
 5. In the block explorer, click a block, then a transaction: see who sent it, which function it called, the fee, the events and the signature.
+
+## Deploy to Google Cloud Run
+
+See [DEPLOY.md](DEPLOY.md): a Dockerfile is included, plus the build, push and deploy commands.
 
 ## Run the tests
 
@@ -52,7 +58,9 @@ npm test
 | `contracts/PaymentProcessor.sol` | the smart contract (Solidity) |
 | `test/PaymentProcessor.test.js` | automated tests |
 | `scripts/deploy.js` | deploys the contract and writes `web/contract.json` |
-| `scripts/serve.js` | tiny web server for the page |
+| `scripts/serve.js` | tiny web server for the page; forwards `/rpc` to the blockchain |
+| `scripts/start.js` | starts chain + deploy + web server in one go (used by Docker) |
+| `Dockerfile`, `DEPLOY.md` | container image and Cloud Run guide |
 | `web/index.html`, `web/tr.html`, `web/app.js` | the demo page in English and Turkish (uses ethers.js) |
 | `LEARN.tr.md` | the guide in Turkish |
 | `LEARN.md` | the beginner's guide |

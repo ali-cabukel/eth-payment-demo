@@ -1,6 +1,7 @@
 import { ethers } from "/vendor/ethers.js";
 
-const RPC_URL = "http://127.0.0.1:8545";
+// The web server forwards /rpc to the blockchain (see scripts/serve.js).
+const RPC_URL = `${location.origin}/rpc`;
 
 // UI text. The page picks a language with <html lang="..."> (index.html = en, tr.html = tr).
 const STRINGS = {
