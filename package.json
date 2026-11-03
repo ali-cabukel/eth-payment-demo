@@ -1,0 +1,16 @@
+{
+  "name": "eth-payment-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Learning demo: a simple Ethereum payment system on a local test blockchain (no real money).",
+  "scripts": {
+    "chain": "hardhat node",
+    "deploy": "hardhat run scripts/deploy.js --network localhost",
+    "web": "node scripts/serve.js",
+    "test": "hardhat test"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "hardhat": "2.29.1"
+  }
+}

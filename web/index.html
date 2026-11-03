@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ETH Payment Demo</title>
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #667085; --line: #e3e6eb;
+      --accent: #5b5bd6; --accent-text: #ffffff; --ok: #1a7f4b; --ok-bg: #e6f4ec; --warn: #9a5b00; --warn-bg: #fdf1dc;
+      --err: #b42318; --err-bg: #fdecea; --code: #f1f2f6;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #12141a; --card: #1b1e26; --text: #e6e8ee; --muted: #9aa3b2; --line: #2b2f3a;
+        --accent: #8b8bf5; --accent-text: #12141a; --ok: #5fd39a; --ok-bg: #173527; --warn: #f2b45a; --warn-bg: #3a2c12;
+        --err: #ff8a80; --err-bg: #3d1a18; --code: #242833;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    header { padding: 20px 16px 8px; max-width: 1200px; margin: 0 auto; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 { margin: 0 0 12px; font-size: 16px; }
+    .sub { color: var(--muted); margin: 0; }
+    .banner { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 14px; }
+    main { max-width: 1200px; margin: 0 auto; padding: 8px 16px 40px; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+    @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+    .wide { grid-column: 1 / -1; }
+    .hint { color: var(--muted); font-size: 13px; margin: -6px 0 12px; }
+    .accounts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .acct { border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; background: transparent; color: inherit; text-align: left; font: inherit; }
+    .acct.active { border-color: var(--accent); }
+    .acct .name { font-weight: 600; }
+    .acct .bal { font-size: 18px; font-variant-numeric: tabular-nums; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; word-break: break-all; }
+    .muted { color: var(--muted); }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    input { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; }
+    .row { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+    .row > div { flex: 1 1 140px; }
+    button.btn { padding: 8px 14px; border-radius: 8px; border: 0; background: var(--accent); color: var(--accent-text); font: inherit; font-weight: 600; cursor: pointer; }
+    button.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    button.btn:disabled { opacity: .45; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; font-size: 13px; }
+    .tag { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+    .tag.ok { background: var(--ok-bg); color: var(--ok); }
+    .tag.warn { background: var(--warn-bg); color: var(--warn); }
+    .tag.err { background: var(--err-bg); color: var(--err); }
+    .table-wrap { overflow-x: auto; }
+    #log { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow-y: auto; }
+    #log li { padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    #log li.err { color: var(--err); }
+    .blocks { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+    .block { flex: 0 0 210px; border: 1px solid var(--line); border-radius: 10px; padding: 10px; cursor: pointer; background: var(--code); }
+    .block.sel { border-color: var(--accent); }
+    .block .num { font-weight: 700; }
+    .block .link { font-size: 12px; color: var(--muted); }
+    .detail { margin-top: 12px; background: var(--code); border-radius: 10px; padding: 12px; font-size: 13.5px; }
+    .detail dl { display: grid; grid-template-columns: 140px 1fr; gap: 4px 12px; margin: 0; }
+    .detail dt { color: var(--muted); }
+    .detail dd { margin: 0; min-width: 0; }
+    .txlink { color: var(--accent); cursor: pointer; text-decoration: underline; }
+    #error-screen { display: none; }
+    .lang { font-size: 13px; font-weight: 500; color: var(--accent); margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ETH Payment Demo <a class="lang" href="tr.html">Türkçe</a></h1>
+    <p class="sub">A shop takes payment in Ether through a smart contract. Switch between people, create an invoice, pay it, and watch the blocks.</p>
+    <div class="banner">Local test blockchain (Hardhat, chain id <span id="chain-id">…</span>). The ETH here is fake and has no value. Latest block: <b id="block-num">…</b></div>
+  </header>
+
+  <main id="app">
+    <section class="card wide">
+      <h2>1 · Who are you?</h2>
+      <p class="hint">Each person is a wallet: an address plus a secret private key. Click one to act as them. Balances are read straight from the blockchain.</p>
+      <div class="accounts" id="accounts"></div>
+    </section>
+
+    <section class="card">
+      <h2>2 · Merchant: create an invoice</h2>
+      <p class="hint">Calls <code>createInvoice()</code> on the contract. It costs a small gas fee, paid by the merchant.</p>
+      <div class="row">
+        <div><label for="amount">Amount (ETH)</label><input id="amount" type="number" min="0" step="0.01" value="0.05" /></div>
+        <div><label for="desc">Description</label><input id="desc" value="Latte + croissant" /></div>
+        <button class="btn" id="create-btn">Create invoice</button>
+      </div>
+      <h2 style="margin-top:20px">Merchant: withdraw</h2>
+      <p class="hint">Payments are held by the contract until the merchant pulls them out with <code>withdraw()</code>.</p>
+      <div class="row">
+        <div>Waiting in contract: <b id="merchant-balance">…</b></div>
+        <button class="btn ghost" id="withdraw-btn">Withdraw</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>What just happened</h2>
+      <p class="hint">Plain-language log of each transaction.</p>
+      <ul id="log"></ul>
+    </section>
+
+    <section class="card wide">
+      <h2>3 · Invoices (stored in the contract)</h2>
+      <p class="hint">Customers pay with <code>pay(id)</code> and must send exactly the invoice amount. Try "Underpay" or paying twice to see the contract refuse.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Description</th><th>Amount</th><th>Status</th><th>Paid by</th><th></th></tr></thead>
+          <tbody id="invoices"><tr><td colspan="6" class="muted">No invoices yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card wide">
+      <h2>4 · Mini block explorer</h2>
+      <p class="hint">Every block stores the hash of the block before it ("parent"). Change an old block and every hash after it breaks: that is why the history can't be quietly edited. Click a block, then a transaction.</p>
+      <div class="blocks" id="blocks"></div>
+      <div class="detail" id="detail"><span class="muted">Select a block to see what's inside.</span></div>
+    </section>
+  </main>
+
+  <main id="error-screen">
+    <section class="card wide">
+      <h2>Can't reach the local blockchain</h2>
+      <p id="error-text"></p>
+      <p>Start it in three terminals, from the project folder:</p>
+      <pre class="mono">npm run chain     # 1. start the local blockchain (leave it running)
+npm run deploy    # 2. put the contract on it
+npm run web       # 3. serve this page</pre>
+      <p>Then reload this page.</p>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
